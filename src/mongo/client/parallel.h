@@ -359,6 +359,10 @@ namespace mongo {
         bool isSharded();
         ShardPtr getPrimary();
         void getQueryShards( set<Shard>& shards );
+
+        int getShardCount() ;                                                                                                                                                                                   
+        ShardPtr getTheOnlyShard() ;
+
         ChunkManagerPtr getChunkManager( const Shard& shard );
         DBClientCursorPtr getShardCursor( const Shard& shard );
 

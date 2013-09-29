@@ -1275,7 +1275,7 @@ namespace mongo {
         return false;
     }
 
-    int ParallelSortClusteredCursor::getShardCount() {                                                                                                                                                          
+    int ParallelSortClusteredCursor::getShardCount() {
         return _cursorMap.size();
     }
 

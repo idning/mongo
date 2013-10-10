@@ -99,6 +99,7 @@ namespace mongo {
         ShardedClientCursorPtr get( long long id ) const;
         void store( ShardedClientCursorPtr cursor );
         void remove( long long id );
+        void removeRef( long long id );
 
         void storeRef( const string& server , long long id );
 

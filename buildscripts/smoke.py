@@ -729,6 +729,7 @@ def add_to_failfile(tests, options):
         testsAndOptions = []
 
     for test in tests:
+        print test
         if (test, options) not in testsAndOptions:
             testsAndOptions.append( (test, options) )
 

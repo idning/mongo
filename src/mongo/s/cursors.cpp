@@ -185,6 +185,13 @@ namespace mongo {
         _cursors.erase( id );
     }
     
+
+    void CursorCache::removeRef( long long id ) {
+        verify( id );
+        scoped_lock lk( _mutex );
+        _refs.erase( id );
+    }
+
     void CursorCache::storeRef( const string& server , long long id ) {
         LOG(_myLogLevel) << "CursorCache::storeRef server: " << server << " id: " << id << endl;
         verify( id );

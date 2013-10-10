@@ -175,62 +175,51 @@ namespace mongo {
 
         virtual void getMore( Request& r ) {
 
+            const char *ns = r.getns();
+
             // TODO:  Handle stale config exceptions here from coll being dropped or sharded during op
             // for now has same semantics as legacy request
             ChunkManagerPtr info = r.getChunkManager();
 
             //
-            // TODO: Cleanup and consolidate into single codepath
+            // TODO: Cleanup cursor cache, consolidate into single codepath
             //
 
-            if( ! info ){
+            int ntoreturn = r.d().pullInt();
+            long long id = r.d().pullInt64();
+            string host = cursorCache.getRef( id );
+            ShardedClientCursorPtr cursor = cursorCache.get( id );
 
-                const char *ns = r.getns();
+            // Cursor ids should not overlap between sharded and unsharded cursors
+            massert( 17012, str::stream() << "duplicate sharded and unsharded cursor id "
+                                          << id << " detected for " << ns
+                                          << ", duplicated on host " << host,
+                     NULL == cursorCache.get( id ).get() || host.empty() );
+
+            if( !host.empty() ){
 
                 LOG(3) << "single getmore: " << ns << endl;
-
-                long long id = r.d().getInt64( 4 );
-
-                string host = cursorCache.getRef( id );
-
-                if( host.size() == 0 ){
-
-                    //
-                    // Match legacy behavior here by throwing an exception when we can't find
-                    // the cursor, but make the exception more informative
-                    //
-
-                    uasserted( 16336,
-                               str::stream() << "could not find cursor in cache for id " << id
-                                             << " over collection " << ns );
-                }
 
                 // we used ScopedDbConnection because we don't get about config versions
                 // not deleting data is handled elsewhere
                 // and we don't want to call setShardVersion
-                scoped_ptr<ScopedDbConnection> conn(
-                        ScopedDbConnection::getScopedDbConnection( host ) );
+                ScopedDbConnection conn(host);
 
                 Message response;
-                bool ok = conn->get()->callRead( r.m() , response);
+                bool ok = conn->callRead( r.m() , response);
                 uassert( 10204 , "dbgrid: getmore: error calling db", ok);
-                r.reply( response , "" /*conn->getServerAddress() */ );
 
-                conn->done();
+                bool hasMore = (response.singleData()->getCursor() != 0);
+
+                if ( !hasMore ) {
+                    cursorCache.removeRef( id );
+                }
+
+                r.reply( response , "" /*conn->getServerAddress() */ );
+                conn.done();
                 return;
             }
-            else {
-                int ntoreturn = r.d().pullInt();
-                long long id = r.d().pullInt64();
-
-                LOG(6) << "want cursor : " << id << endl;
-
-                ShardedClientCursorPtr cursor = cursorCache.get( id );
-                if ( ! cursor ) {
-                    LOG(6) << "\t invalid cursor :(" << endl;
-                    replyToQuery( ResultFlag_CursorNotFound , r.p() , r.m() , 0 , 0 , 0 );
-                    return;
-                }
+            else if ( cursor ) {
 
                 // TODO: Try to match logic of mongod, where on subsequent getMore() we pull lots more data?
                 BufBuilder buffer( ShardedClientCursor::INIT_REPLY_BUFFER_SIZE );
@@ -249,6 +238,14 @@ namespace mongo {
 
                 replyToQuery( 0, r.p(), r.m(), buffer.buf(), buffer.len(), docCount,
                         startFrom, hasMore ? cursor->getId() : 0 );
+                return;
+            }
+            else {
+
+                LOG( 3 ) << "could not find cursor " << id << " in cache for " << ns << endl;
+
+                replyToQuery( ResultFlag_CursorNotFound , r.p() , r.m() , 0 , 0 , 0 );
+                return;
             }
         }
 

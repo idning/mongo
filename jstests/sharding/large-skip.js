@@ -1,4 +1,4 @@
-var st = new ShardingTest({ shards : 2, mongos : 1});
+var st = new ShardingTest(testName = "large-skip", numShards = 2, verboseLevel = 6, numMongos = 1);
 
 var mongos = st.s0;
 var shards = mongos.getDB( "config" ).shards.find().toArray();

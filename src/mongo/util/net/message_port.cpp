@@ -201,6 +201,7 @@ again:
 
         }
         catch ( const SocketException & e ) {
+            LOG(0) << "SocketException: remote: " << remote() << " error: " << e << endl;
             LOG(psock->getLogLevel() + (e.shouldPrint() ? 0 : 1) ) << "SocketException: remote: " << remote() << " error: " << e << endl;
             m.reset();
             return false;
@@ -225,6 +226,7 @@ again:
         while ( 1 ) {
             bool ok = recv(response);
             if ( !ok ) {
+                log() << "recv not ok" << endl;
                 mmm( log() << "recv not ok" << endl; )
                 return false;
             }

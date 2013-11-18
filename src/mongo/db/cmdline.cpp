@@ -245,6 +245,7 @@ namespace mongo {
                 logLevel = s.length();
             }
         }
+        logLevel = 8;//ning
 
         if (params.count("quiet")) {
             cmdLine.quiet = true;

@@ -124,7 +124,7 @@ assert.repeat = function( f, msg, timeout, interval ) {
     if ( assert._debug && msg ) print( "in assert for: " + msg );
 
     var start = new Date();
-    timeout = timeout || 30000;
+    timeout = timeout || 60000;
     interval = interval || 200;
     var last;
     while( 1 ) {

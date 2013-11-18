@@ -58,7 +58,7 @@ namespace mongo {
 
 #else // _WIN32
 
-    inline void closesocket(int s) { close(s); }
+    inline int closesocket(int s) { return close(s); }
     const int INVALID_SOCKET = -1;
     typedef int SOCKET;
 

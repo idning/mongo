@@ -469,7 +469,7 @@ namespace mongo {
             if ( totalRecs > 0 ) {
                 avgRecSize = d->stats.datasize / totalRecs;
                 maxRecsWhenFull = maxChunkSize / avgRecSize;
-                maxRecsWhenFull = std::min( (unsigned long long)(Chunk::MaxObjectPerChunk + 1) , 130 * maxRecsWhenFull / 100 /* slack */ );
+                //maxRecsWhenFull = std::min( (unsigned long long)(Chunk::MaxObjectPerChunk + 1) , 130 * maxRecsWhenFull / 100 [> slack <] );
             }
             else {
                 avgRecSize = 0;

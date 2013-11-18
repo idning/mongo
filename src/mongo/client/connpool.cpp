@@ -33,8 +33,11 @@ namespace mongo {
     }
 
     void PoolForHost::clear() {
+
+        log() << "ning: PoolForHost::clear() " << endl;
         while ( ! _pool.empty() ) {
             StoredConnection sc = _pool.top();
+            log() << "ning: PoolForHost::clear conn " << sc.conn << endl;
             delete sc.conn;
             _pool.pop();
         }
@@ -157,8 +160,19 @@ namespace mongo {
     DBClientBase* DBConnectionPool::_get(const string& ident , double socketTimeout ) {
         verify( ! inShutdown() );
         scoped_lock L(_mutex);
+
+        log() << "ning: DBConnectionPool::_get()" << ident << endl;
+
         PoolForHost& p = _pools[PoolKey(ident,socketTimeout)];
-        return p.get( this , socketTimeout );
+        DBClientBase * ret = p.get( this , socketTimeout );
+
+        if(ret){
+            log() << "ning: DBConnectionPool::_get() return " << ret << " " << ret->getServerAddress() << endl;
+        }else{
+            log() << "ning: DBConnectionPool::_get() return " << ret << "-" << endl;
+        }
+
+        return ret;
     }
 
     DBClientBase* DBConnectionPool::_finishCreate( const string& host , double socketTimeout , DBClientBase* conn ) {
@@ -196,6 +210,7 @@ namespace mongo {
         string errmsg;
         c = url.connect( errmsg, socketTimeout );
         uassert( 13328 ,  _name + ": connect failed " + url.toString() + " : " + errmsg , c );
+        log() << "ning: 1. DBConnectionPool::get return a new create conn " << c->getServerAddress() << " "<< c << endl;
 
         return _finishCreate( url.toString() , socketTimeout , c );
     }
@@ -218,6 +233,7 @@ namespace mongo {
         uassert( 13071 , (string)"invalid hostname [" + host + "]" + errmsg , cs.isValid() );
 
         c = cs.connect( errmsg, socketTimeout );
+        log() << "ning: 2. DBConnectionPool::get return a new create conn " << c->getServerAddress() << " " << c << endl;
         if ( ! c )
             throw SocketException( SocketException::CONNECT_ERROR , host , 11002 , str::stream() << _name << " error: " << errmsg );
         return _finishCreate( host , socketTimeout , c );

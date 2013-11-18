@@ -237,6 +237,8 @@ ReplSetTest.prototype.getOptions = function( n , extra , putBinaryFirst ){
     
     a.push( "--noprealloc", "--smallfiles" );
 
+    a.push( "--vvvvvv" );
+
     a.push( "--rest" );
 
     a.push( "--port" );

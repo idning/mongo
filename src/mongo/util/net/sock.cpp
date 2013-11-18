@@ -348,7 +348,7 @@ namespace mongo {
 
     string SocketException::toString() const {
         stringstream ss;
-        ss << _ei.code << " socket exception [" << _type << "] ";
+        ss << _ei.code << " socket exception [" << SocketException::_getStringType(_type) << "] ";
         
         if ( _server.size() )
             ss << "server [" << _server << "] ";
@@ -495,14 +495,18 @@ namespace mongo {
 
     // ------------ Socket -----------------
     
+    // this is Server socket
     Socket::Socket(int fd , const SockAddr& remote) : 
         _fd(fd), _remote(remote), _timeout(0) {
+        LOG(0) << "init Socket, fd = " << fd << "remote=" << remote << " with _logLevel=0" << endl;
         _logLevel = 0;
         _init();
     }
 
+    // this is client socket
     Socket::Socket( double timeout, int ll ) {
-        _logLevel = ll;
+        LOG(0) << "init Socket " << " with _logLevel=" << ll << "we will change it to 0" << endl;
+        _logLevel = 0;
         _fd = -1;
         _timeout = timeout;
         _init();
@@ -529,8 +533,10 @@ namespace mongo {
     }
 
     void Socket::close() {
+        LOG(_logLevel) << "Socket::close() " << "on " <<  _fd << endl;
         if ( _fd >= 0 ) {
-            closesocket( _fd );
+            int ret = closesocket( _fd );
+            LOG(_logLevel) << "Socket::close() " << "on " <<  _fd << "return: " << ret << " errno: " << errno << endl;
             _fd = -1;
         }
     }
@@ -772,7 +778,7 @@ namespace mongo {
                     throw SocketException( SocketException::RECV_TIMEOUT, remoteString() );                    
                 }
 
-                LOG(_logLevel) << "Socket recv() " << errnoWithDescription(e) << " " << remoteString() <<endl;
+                LOG(_logLevel) << "Socket recv() " << "on " <<  _fd << errnoWithDescription(e) << " " << remoteString() <<endl;
                 throw SocketException( SocketException::RECV_ERROR , remoteString() );
             }
         }

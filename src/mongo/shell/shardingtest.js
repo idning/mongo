@@ -823,7 +823,7 @@ ShardingTest.prototype.chunkDiff = function( collName , dbName ){
 // loaded shard to be 0 or 1, indicating that the collection is well balanced.
 // This should only be called after creating a big enough chunk difference to trigger balancing.
 ShardingTest.prototype.awaitBalance = function( collName , dbName , timeToWait ) {
-    timeToWait = timeToWait || 60000;
+    timeToWait = timeToWait || 30000;
     var shardingTest = this;
     assert.soon( function() {
         var x = shardingTest.chunkDiff( collName , dbName );

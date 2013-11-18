@@ -255,9 +255,10 @@ namespace mongo {
             Timer timer;
             time_t before = curTimeMicros64() / 1000000;
 
+            log() << "ning, ning.1" << endl;
             bool ok = requestHeartbeat(theReplSet->name(), theReplSet->selfFullName(),
                                        h.toString(), info, theReplSet->config().version, theirConfigVersion);
-
+            log() << "ning, ning.2" << info << endl;
             mem.ping = (unsigned int)timer.millis();
 
             // we set this on any response - we don't get this far if

@@ -1297,13 +1297,16 @@ namespace mongo {
 
     // This can't throw an exception because it is called in the destructor of ScopedDbConnection
     string DBClientReplicaSet::getServerAddress() const {
+
         ReplicaSetMonitorPtr rsm = ReplicaSetMonitor::get( _setName, true );
         if ( !rsm ) {
             warning() << "Trying to get server address for DBClientReplicaSet, but no "
                 "ReplicaSetMonitor exists for " << _setName << endl;
             return str::stream() << _setName << "/" ;
         }
-        return rsm->getServerAddress();
+        string s = rsm->getServerAddress();
+        log() << "DBClientReplicaSet::getServerAddress()" << _setName << " : " << s<< endl;
+        return s;
     }
 
     DBClientConnection * DBClientReplicaSet::checkMaster() {
